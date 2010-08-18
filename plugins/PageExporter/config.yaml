@@ -4,16 +4,16 @@ author_link: http://www.koikikukan.com/
 author_name: Yujiro Araki
 plugin_link: http://www.koikikukan.com/archives/2010/02/09-015555.php
 doc_link: http://www.koikikukan.com/archives/2010/02/09-015555.php
-description: <__trans phrase="PageExporter.">
-version: 0.01
+description: <__trans phrase="Exporter and Importer for pages.">
+version: 0.02
 l10n_lexicon:
     ja:
-        PageExporter.: ウェブページをテーマにエクスポートします
+        Exporter and Importer for pages.: ウェブページのエクスポータとインポータを提供するためのテーマフレームワーク拡張
 theme_element_handlers:
     plugin_default_pages:
         label: Pages
         importer:
-            import: $PageExporter::PageExporter::Theme::import_pages
+            import: $PageExporter::PageExporter::Theme::import
             info: $PageExporter::PageExporter::Theme::info
         exporter:
             params: plugin_default_pages_export_ids

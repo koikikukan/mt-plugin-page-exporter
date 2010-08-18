@@ -3,7 +3,6 @@ use strict;
 
 use MT;
 use MT::Page;
-use Data::Dumper;
 
 sub condition {
     my ( $blog ) = @_;
@@ -48,25 +47,16 @@ sub export {
         @pages = MT->model('page')->load({ blog_id => $blog->id });
     }
     return unless scalar @pages;
-#    my %data = map {
-#        my $cats = $_->categories;
-#        my $folder;
-#        for my $cat (@$cats) { $folder = $cat->basename; }
-#        $_->basename => {
-#            title => $_->title,
-#            text => $_->text,
-#            text_more => $_->text_more,
-#            tags  => join(',', $_->get_tags),
-#            folder  => $folder,
-#        }
-#    } @pages;
-#    return \%data;
 
     my $data = {};
     for my $page ( @pages ) {
-        my $cats = $page->categories;
-        my $folder;
-        for my $cat (@$cats) { $folder = $cat->basename; }
+        my $folder = $page->folder;
+        my $path = $folder->basename if $folder;
+        do {
+            $folder = $folder && $folder->parent ?
+                MT->model('folder')->load($folder->parent) : undef;
+            $path = join "/", $folder->basename, $path if $folder;
+        } while ($folder);
         my $hash = {
             title => $page->title,
             text => $page->text,
@@ -82,22 +72,14 @@ sub export {
             allow_pings => $page->allow_pings,
             basename => $page->basename,
             tags  => join(',', $page->get_tags),
-            folder  => $folder,
+            folder  => $path,
         };
-        $data->{ $page->basename } = $hash;
+        $data->{ $page->id } = $hash;
     }
     return %$data ? $data : undef;
 }
 
-sub finalize {
-    my $app = shift;
-    my ( $blog, $theme_hash, $tmpdir, $setting ) = @_;
-    my $success = 0;
-    ## some work for $tmpdir
-    return 1;
-}
-
-sub import_pages {
+sub import {
     my ( $element, $theme, $obj_to_apply ) = @_;
     my $entries = $element->{data};
     _add_entries( $theme, $obj_to_apply, $entries, 'page' )
@@ -112,12 +94,25 @@ sub _add_entries {
         title   text     text_more
         excerpt keywords
     );
-    for my $basename ( keys %$pages ) {
-        my $page = $pages->{$basename};
-        next if MT->model($class)->count({
-            basename => $basename,
+    PAGE: for my $id ( keys %$pages ) {
+        my $page = $pages->{$id};
+        my $iter = MT->model($class)->load_iter({
+            basename => $page->{basename},
             blog_id  => $blog->id,
         });
+
+        # check same basename
+        while (my $p = $iter->()) {
+            my $folder = $p->folder;
+            my $path = $folder->basename if $folder;
+            do {
+                $folder = $folder && $folder->parent ?
+                    MT->model('folder')->load($folder->parent) : undef;
+                $path = join "/", $folder->basename, $path if $folder;
+            } while ($folder);
+            next PAGE if $path eq $page->{folder};
+        }
+
         next if MT->model($class)->count({
             title => $page->{title},
             blog_id  => $blog->id,
@@ -132,7 +127,7 @@ sub _add_entries {
         });
         MT->set_language( $current_lang );
 
-        $obj->basename( $basename );
+        $obj->basename( $page->{basename} );
         $obj->blog_id( $blog->id );
         $obj->author_id( $app->user->id );
 
