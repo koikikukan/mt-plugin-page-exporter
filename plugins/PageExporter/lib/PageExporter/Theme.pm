@@ -6,6 +6,7 @@ use MT::Page;
 
 sub condition {
     my ( $blog ) = @_;
+
     my $page = MT->model('page')->load({ blog_id => $blog->id }, { limit => 1 });
     return defined $page ? 1 : 0;
 }
@@ -32,8 +33,14 @@ sub template {
     }
     my %param = ( pages => \@list );
 
+    my $template_file;
+    if (MT->version_number < 5.1) {
+        $template_file = 'export_page_50.tmpl';
+    } else {
+        $template_file = 'export_page.tmpl';
+    }
     my $plugin = MT->component('PageExporter');
-    return $plugin->load_tmpl('export_page.tmpl', \%param);
+    return $plugin->load_tmpl($template_file, \%param);
 }
 
 sub export {

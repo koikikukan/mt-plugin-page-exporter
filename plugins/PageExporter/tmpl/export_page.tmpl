@@ -1,22 +1,38 @@
 <mtapp:listing id="pages" loop="pages" hide_pager="1" show_actions="0" type="pages">
-    <mt:if __first__>
-        <thead>
-            <tr>
-                <th class="cb"><input type="checkbox" name="id-head" value="all" class="select" /></th>
-                <th class="field-name primary-col"><__trans phrase="Name"></th>
-            </tr>
-        </thead>
-        <tbody>
-    </mt:if>
-            <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
-                <td class="cb">
-                    <input type="checkbox" name="plugin_default_pages_export_ids" class="select" value="<mt:var name="page_id">" <mt:if checked>checked="checked" </mt:if>/>
-                </td>
-                <td class="field-name"><mt:var name="page_title" escape="html"></td>
-            </tr>
-    <mt:if __last__>
-        </tbody>
-    </mt:if>
+<mt:if name="__first__">
+
+<mt:setvarblock name="table_header">
+  <tr>
+    <th class="col head cb"><span class="col-label"><input type="checkbox" name="id-head" value="all" class="select" /></span></th>
+    <th class="col head field-name primary"><span class="col-label"><__trans phrase="Name"></span></th>
+  </tr>
+</mt:setvarblock>
+
+  <thead>
+    <mt:var name="table_header">
+  </thead>
+  <tfoot>
+    <mt:var name="table_header">
+  </tfoot>
+  <tbody>
+</mt:if>
+    <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
+      <td class="col cb">
+        <input
+           type="checkbox"
+           name="plugin_default_pages_export_ids"
+           class="select"
+           value="<mt:var name="page_id">"
+           <mt:if checked>checked="checked" </mt:if>
+           />
+      </td>
+      <td class="col field-name">
+        <mt:var name="page_title" escape="html">
+      </td>
+    </tr>
+<mt:if name="__last__">
+  </tbody>
+</mt:if>
 </mtapp:listing>
 <script type="text/javascript">
 jQuery.mtCheckbox();
